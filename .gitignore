@@ -2,7 +2,8 @@ venv/
 data/raw/
 data/processed/
 mlruns/
-artifacts/
+artifacts/*
+!artifacts/.gitkeep
 __pycache__/
 *.pyc
 .env

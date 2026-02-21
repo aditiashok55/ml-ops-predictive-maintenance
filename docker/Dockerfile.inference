@@ -2,7 +2,6 @@ FROM python:3.12-slim
 
 WORKDIR /app
 
-# Fix pkg_resources issue before anything else
 RUN pip install --no-cache-dir setuptools==69.0.0
 
 COPY requirements.txt .
