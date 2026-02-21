@@ -1,0 +1,11 @@
+ pytest tests/ -v
+
+
+ uvicorn src.inference.app:app --reload --port 8000     
+
+
+ mlflow ui
+
+ C:\Users\dell>curl -X POST http://127.0.0.1:8000/predict -H "Content-Type: application/json"  -d "{\"engine_id\": 1, \"cycle\": 50, \"op_setting_1\": 0.5, \"op_setting_2\": 0.4, \"op_setting_3\": 0.3, \"sensor_2\": 0.6, \"sensor_3\": 0.5, \"sensor_4\": 0.7, \"sensor_7\": 0.4, \"sensor_8\": 0.8, \"sensor_9\": 0.6, \"sensor_11\": 0.5, \"sensor_12\": 0.4, \"sensor_13\": 0.6, \"sensor_14\": 0.7, \"sensor_15\": 0.3, \"sensor_17\": 0.5, \"sensor_20\": 0.4, \"sensor_21\": 0.6}"
+
+{"engine_id":1,"cycle":50,"predicted_rul":57.19,"warning_level":"WARNING","latency_ms":130.1}

@@ -1,0 +1,42 @@
+services:
+
+  mlflow:
+    image: python:3.12-slim
+    container_name: mlflow-server
+    working_dir: /mlflow
+    volumes:
+      - ./mlruns:/mlflow/mlruns
+      - ./artifacts:/mlflow/artifacts
+    ports:
+      - "5000:5000"
+    command: >
+          bash -c "pip install setuptools==69.0.0 &&
+           pip install mlflow==2.14.0 &&
+           mlflow server
+           --host 0.0.0.0
+           --port 5000
+           --backend-store-uri /mlflow/mlruns
+           --default-artifact-root /mlflow/artifacts"
+    healthcheck:
+          test: ["CMD-SHELL", "python -c \"import socket; s=socket.socket(); s.connect(('localhost', 5000)); s.close()\""]
+          interval: 15s
+          timeout: 10s
+          retries: 10
+          start_period: 180s
+
+  inference:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.inference
+    container_name: inference-service
+    ports:
+      - "8000:8000"
+    environment:
+      - MLFLOW_TRACKING_URI=http://mlflow:5000
+      - MODEL_URI=models:/rul-predictor/1
+    depends_on:
+      mlflow:
+        condition: service_healthy
+    volumes:
+      - ./mlruns:/app/mlruns
+    restart: on-failure
