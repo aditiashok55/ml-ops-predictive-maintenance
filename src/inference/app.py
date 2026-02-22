@@ -3,6 +3,8 @@ import pandas as pd
 import numpy as np
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
+from contextlib import asynccontextmanager
+from prometheus_fastapi_instrumentator import Instrumentator
 import logging
 import time
 import os
@@ -14,27 +16,43 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# ── App init ──────────────────────────────────────────────────────────
-app = FastAPI(
-    title="Predictive Maintenance API",
-    description="Predicts Remaining Useful Life (RUL) of jet engines from sensor readings",
-    version="1.0.0"
-)
-
-# ── Model loading ─────────────────────────────────────────────────────
-MODEL_URI = os.getenv("MODEL_URI", "models:/rul-predictor/1")
+MODEL_URI = os.getenv("MODEL_URI", "models:/rul-predictor/2")
 model = None
 
-@app.on_event("startup")
-async def load_model():
+
+# ── Lifespan (replaces deprecated on_event) ───────────────────────────
+@asynccontextmanager
+async def lifespan(app: FastAPI):
     global model
     logger.info(f"Loading model from {MODEL_URI}...")
     try:
         model = mlflow.xgboost.load_model(MODEL_URI)
-        logger.info("Model loaded successfully")
+        logger.info("Model loaded successfully from registry")
     except Exception as e:
-        logger.error(f"Failed to load model: {e}")
-        raise
+        logger.warning(f"Registry load failed, trying local fallback: {e}")
+        try:
+            client = mlflow.tracking.MlflowClient()
+            latest = client.get_latest_versions("rul-predictor")[0]
+            local_path = "/app/mlruns/" + latest.source.split("mlruns/")[-1]
+            logger.info(f"Loading from local path: {local_path}")
+            model = mlflow.xgboost.load_model(local_path)
+            logger.info("Model loaded successfully from local path")
+        except Exception as e2:
+            logger.error(f"Failed to load model: {e2}")
+            raise
+    yield
+    # Shutdown logic can go here if needed
+
+
+# ── App init ──────────────────────────────────────────────────────────
+app = FastAPI(
+    title="Predictive Maintenance API",
+    description="Predicts Remaining Useful Life (RUL) of jet engines from sensor readings",
+    version="1.0.0",
+    lifespan=lifespan
+)
+
+Instrumentator().instrument(app).expose(app)
 
 
 # ── Request / Response schemas ────────────────────────────────────────
@@ -70,20 +88,12 @@ class PredictionResponse(BaseModel):
 
 # ── Helper: build features ────────────────────────────────────────────
 def build_single_features(data: dict) -> pd.DataFrame:
-    """
-    Build feature vector for a single reading.
-    For rolling features we use the raw value (no history available at inference).
-    """
     sensor_cols = [k for k in data.keys() if k.startswith("sensor_")]
     op_cols = [k for k in data.keys() if k.startswith("op_setting_")]
-
     row = {col: data[col] for col in sensor_cols + op_cols}
-
-    # Rolling features default to raw value at inference time
     for col in sensor_cols:
         row[f"{col}_mean5"] = data[col]
         row[f"{col}_std5"] = 0.0
-
     return pd.DataFrame([row])
 
 
@@ -99,7 +109,6 @@ def predict(reading: SensorReading):
         raise HTTPException(status_code=503, detail="Model not loaded")
 
     start = time.time()
-
     try:
         data = reading.model_dump()
         features = build_single_features(data)
@@ -111,7 +120,6 @@ def predict(reading: SensorReading):
 
     latency_ms = round((time.time() - start) * 1000, 2)
 
-    # Warning level logic
     if predicted_rul <= 30:
         warning_level = "CRITICAL"
     elif predicted_rul <= 70:
