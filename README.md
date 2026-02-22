@@ -75,11 +75,24 @@ ml-platform/
 statistics (mean, std over 5 cycles) per engine, normalizes sensor readings.
 
 **Training** — XGBoost regressor trained to predict RUL. Experiments tracked
-in MLflow with full parameter, metric, and artifact logging. Baseline model
-achieves Val RMSE: 36.16, R²: 0.714.
+in MLflow with full parameter, metric, and artifact logging. 
 
 **Model Registry** — Trained models registered and versioned in MLflow.
 Inference service loads by registry name, enabling zero-downtime model updates.
+
+---
+
+## Model Performance
+
+| Metric | Train | Validation |
+|---|---|---|
+| RMSE | 28.24 | 36.16 |
+| MAE | — | 25.51 |
+| R² | — | 0.714 |
+
+Baseline XGBoost with rolling window feature engineering.
+Mild overfitting (train/val RMSE gap) identified — regularization
+tuning is tracked as a future experiment in MLflow.
 
 ---
 
@@ -172,3 +185,13 @@ pytest tests/ -v
 
 7 tests covering preprocessing correctness, feature engineering, model
 evaluation metrics, and API endpoint behavior.
+
+---
+
+## Future Work
+
+- Hyperparameter tuning with MLflow experiment comparison
+- Drift detection using Evidently AI when sensor distributions shift
+- Multi-dataset training (FD002–FD004) for generalization
+- Kubernetes deployment for horizontal scaling
+- AWS deployment via existing Terraform configuration
