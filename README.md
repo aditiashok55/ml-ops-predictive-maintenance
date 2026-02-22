@@ -1,9 +1,22 @@
 # Production-Grade ML Platform — Predictive Maintenance
 
 An end-to-end MLOps platform that predicts **Remaining Useful Life (RUL)** of
-industrial jet engines from sensor data. Built to demonstrate production ML
-engineering practices including experiment tracking, containerized inference,
-CI/CD automation, and real-time monitoring.
+industrial jet engines from time-series sensor data. RUL represents the number
+of operational cycles remaining before an engine requires maintenance or risks
+failure — enabling maintenance teams to intervene proactively rather than
+reactively. Early and accurate RUL prediction directly reduces unplanned
+downtime, lowers maintenance costs, and improves operational safety.
+
+The platform is built on the NASA CMAPSS dataset, which simulates real-world
+turbofan engine degradation across 21 sensors over hundreds of operational
+cycles. The ML system ingests these sensor readings, extracts degradation
+signals via rolling window feature engineering, and serves real-time
+predictions through a production-grade REST API.
+
+Built to demonstrate end-to-end ML engineering practices including experiment
+tracking, containerized inference, CI/CD automation, and real-time monitoring
+— mirroring workflows used in industrial ML deployments across aerospace,
+automotive, and manufacturing sectors.
 
 ---
 
