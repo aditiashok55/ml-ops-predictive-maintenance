@@ -2,12 +2,8 @@
 
 > A high-performance **MLOps pipeline** that predicts the **Remaining Useful Life (RUL)** of industrial jet engines—enabling proactive maintenance through automated feature engineering and real-time REST API inference.
 
-[![Python](https://shields.io)](https://python.org)
-[![Scikit-Learn](https://shields.io)](https://scikit-learn.org)
-[![Docker](https://shields.io)](https://www.docker.com/)
-[![MLflow](https://shields.io)](https://mlflow.org)
-[![FastAPI](https://shields.io)](https://fastapi.tiangolo.com/)
-[![License](https://shields.io)](LICENSE)
+[![Python](https://shields.io)](https://python.org)[![(Scikit-Learn)](https://shields.io)](https://scikit-learn.org)[![Docker](https://shields.io)](https://docker.com)[![MLflow](https://shields.io)](https://mlflow.org)[![FastAPI](https://shields.io)](https://tiangolo.com)[![License](https://shields.io)](LICENSE)
+
 
 ---
 
